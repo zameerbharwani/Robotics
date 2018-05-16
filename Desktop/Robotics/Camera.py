@@ -1,44 +1,59 @@
 #!/usr/bin/env python
-import Joy
+from sensor_msgs.msg import Joy
+from can_msgs.msg import Frame
 import rospy
+import struct
+
+
 
 class GimbalController:
 
 	def __init__(self):
 
 		self.init_camera=rospy.init_node("Gimbal", anonymous=True)
-		self.sub_camera=rosy.Subscriber("Xbox",Joy,self.callback) #receives Xbox commands by subscribing to Joy topic
-		self.pub_camera= rospy.Publisher("Gimbal Camera", Frame, queue_size=20) #xbox publishes to the camera
+		self.sub_camera=rospy.Subscriber("/joy",Joy,self.callback) #receives Xbox commands by subscribing to Joy topic
+		self.pub_camera= rospy.Publisher("/gimbal_camera", Frame, queue_size=20) #xbox publishes to the camera
 		self.pan=0
 		self.tilt=0
 		self.ID = 600 # CAN id
 
 
-	def callback(self):
+	def callback(self, joy): 
 
-		if joy.buttons[10]==1:
+
+		if joy.axes[5]==1:
 			self.tilt+=10
 
-		if self.tilt >60:
-			self.tilt = 60
-	
-		if self.tilt < -60:
-			self.tilt = -60	
-
-		if self.pan < -180:
-			self.pan = -180	
-
-		if self.pan > 180:
-			self.pan=180
-
-		elif joy.buttons[11]==1:
+		elif joy.axes[5]==-1:
 			self.tilt-=10	
 		
-		elif joy.buttons[12]==1:
+		elif joy.axes[4]==-1:
 			self.pan+=10
 
-		elif joy.buttons[13]==1: 
+		elif joy.axes[4]==1: 
 			self.pan-=10
+        
+
+  #The if statements below work for Xbox controllers
+
+  #       if joy.buttons[10]==1: 
+  #           self.tilt+=10
+                
+                
+  #       elif joy.buttons[11]==1:
+  #       	self.tilt-=10
+                
+		# elif joy.buttons[12]==1:
+		# 	self.pan+=10
+                
+		# elif joy.buttons[13]==1: 
+		# 	self.pan-=10
+
+
+		self.tilt=min(max(self.tilt,-60),60)
+
+		self.pan=min(max(self.pan, -180),180)	#do at very end 
+
 
 		self.sendAngle()
 
@@ -46,7 +61,7 @@ class GimbalController:
 # Convert angles to CAN frame msg type
 	def angleToFrame(self):
 		frame = Frame()
-		frame.ID = self._id
+		frame.id = self.ID
 		frame.is_rtr = False
 		frame.is_extended = False
 		frame.is_error = False
