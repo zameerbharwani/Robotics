@@ -1,4 +1,3 @@
-Robotics Software Team, Mars Rover Bot
+Robotics Software Team, Mars Rover Bot, URC 2018
 
-- Camera.py was code I wrote to control the gimbal camera via the aid of a gamepad (xbox) controller 
-# random
+Scripts here were used for control of various aspects (camera, science module etc) of the mars rover via use of an xbox controller
